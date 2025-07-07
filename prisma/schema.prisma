@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  email       String   @unique
+  name        String
+  password    String
+  role        Role     @default(USER)
+  isActive    Boolean  @default(true)
+  balance     Float    @default(0)
+  profilePicture String? // Base64 encoded image or URL
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  sentTransactions     Transaction[] @relation("SentTransactions")
+  receivedTransactions Transaction[] @relation("ReceivedTransactions")
+}
+
+model Transaction {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  amount      Float
+  description String?
+  status      TransactionStatus @default(PENDING)
+  type        TransactionType
+  createdAt   DateTime          @default(now())
+  
+  senderId    String? @db.ObjectId
+  receiverId  String? @db.ObjectId
+  sender      User?   @relation("SentTransactions", fields: [senderId], references: [id])
+  receiver    User?   @relation("ReceivedTransactions", fields: [receiverId], references: [id])
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum TransactionType {
+  PAYMENT
+  DEPOSIT
+  WITHDRAWAL
+}
