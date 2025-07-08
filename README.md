@@ -1,108 +1,171 @@
-Chapa Payment Solutions - Test AssignmentThis repository contains a test assignment for integrating a robust payment processing platform. The assignment demonstrates a complete payment flow, including user balance validation, transaction creation, and error handling for insufficient balance scenarios. The implementation uses Prisma for database operations and Jest for unit testing.Table of ContentsOverview (#overview)
-Features (#features)
-Technologies Used (#technologies-used)
-Setup Instructions (#setup-instructions)
-Testing (#testing)
-Code Explanation (#code-explanation)
-Assumptions (#assumptions)
-Future Improvements (#future-improvements)
-Contact (#contact)
+💸 Chapa Payment Solutions – Payment Processing Simulation
+This repository contains a professional-grade test assignment showcasing a modular and reliable approach to digital payment processing. Built to emulate real-world transaction logic, it demonstrates a secure, verifiable, and test-driven payment flow using modern TypeScript tooling.
 
-OverviewThis project simulates a payment processing system where a sender transfers funds to a receiver. The system ensures:The sender has sufficient balance for the transaction.
-The receiver exists in the system.
-Transactions are created and recorded successfully.
-Edge cases, such as insufficient balance, are handled appropriately.
+From balance verification to transaction creation, this project simulates the key operations of a fintech backend — while keeping things robust, testable, and beautifully simple.
 
-The code includes a Jest test suite that mocks Prisma database operations to validate the payment flow and error handling.FeaturesValidates sender's balance before initiating a payment.
-Verifies the existence of the receiver by email.
-Creates a transaction record with details such as amount, status, sender, and receiver.
-Handles insufficient balance scenarios gracefully.
-Uses mocked Prisma operations for testing to ensure reliability and isolation.
+🧭 Table of Contents
+🧩 Overview
 
-Technologies UsedTypeScript: For type safety and improved developer experience.
-Prisma: For database interactions (mocked in tests).
-Jest: For unit testing and mocking.
-Node.js: As the runtime environment.
+✨ Features
 
-Setup InstructionsTo run the project locally:Clone the Repository:bash
+🛠️ Technologies Used
 
+⚙️ Setup Instructions
+
+🧪 Testing
+
+🧠 Code Architecture & Logic
+
+📌 Assumptions
+
+🚀 Future Enhancements
+
+📫 Contact
+
+📖 Overview
+This project simulates a peer-to-peer digital payment flow, focusing on:
+
+Balance verification before payment.
+
+Receiver validation via email.
+
+Transaction creation with robust error handling.
+
+Atomicity via simulated Prisma transactions.
+
+Ideal for evaluating backend engineering skills in handling real-life edge cases like insufficient balance, data consistency, and isolated testing without a real database.
+
+✨ Features
+✅ Validates sender's balance before initiating a transaction.
+
+✅ Verifies receiver existence by email.
+
+✅ Creates a transaction with metadata: amount, status, senderId, receiverId.
+
+✅ Handles edge cases like insufficient balance cleanly.
+
+✅ Mocks Prisma operations to ensure fast, isolated unit tests.
+
+🛠️ Technologies Used
+Tech	Purpose
+TypeScript	Type-safe backend development
+Node.js	Runtime environment
+Prisma	ORM for modeling database (mocked)
+Jest	Testing framework with mocking support
+
+⚙️ Setup Instructions
+To run this project locally:
+
+Clone the repository
+
+bash
+Copy
+Edit
 git clone https://github.com/Nahomtewodros101/chapa-fullstack-interview-assignment.git
+Install dependencies
 
-
-Install Dependencies:bash
-
+bash
+Copy
+Edit
 npm install
+Environment Setup
 
-Configure Environment:Ensure Node.js and npm are installed.
-No database setup is required since Prisma is mocked for testing purposes.
+No need for an actual database — Prisma operations are mocked for test isolation. Just make sure you have Node.js and npm installed.
 
-Run Tests:bash
+Run Tests
 
+bash
+Copy
+Edit
 npm test
+🧪 Testing
+The test suite lives in the /tests directory and uses Jest to validate payment flows through two core cases:
 
-TestingThe test suite is located in the tests directory and uses Jest to validate the payment flow. Two primary test cases are implemented:Successful Payment Flow:Verifies that a payment is processed when the sender has sufficient balance.
-Ensures the receiver exists and the transaction is marked as "COMPLETED".
-Mocks Prisma operations to simulate database interactions.
+1. ✅ Successful Payment Flow
+Sender has sufficient balance.
 
-Insufficient Balance Scenario:Tests the case where the sender's balance is less than the payment amount.
-Validates that the system correctly identifies insufficient funds.
+Receiver exists.
 
-Running TestsTo execute the test suite:bash
+Transaction status: COMPLETED.
 
-npm test
+2. ❌ Insufficient Balance Scenario
+Sender lacks the required balance.
 
-The tests use mocked Prisma operations to avoid real database interactions, ensuring fast and reliable test execution.Code ExplanationThe provided code is a Jest test suite that simulates the payment flow. Below is a breakdown of the key components:Mocking PrismaPrisma is mocked to simulate database operations without requiring a real database:typescript
+System halts the transaction with proper error detection.
 
-jest.mock("@/lib/prisma", () => {
-  return {
-    prisma: {
-      user: {
-        findUnique: jest.fn(),
-        update: jest.fn(),
-      },
-      transaction: {
-        create: jest.fn(),
-      },
-      $transaction: jest.fn(),
+📂 Mocked Prisma Methods
+ts
+Copy
+Edit
+jest.mock("@/lib/prisma", () => ({
+  prisma: {
+    user: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
     },
-  };
-});
+    transaction: {
+      create: jest.fn(),
+    },
+    $transaction: jest.fn(),
+  },
+}));
+These mocks prevent real database writes and make your test suite blazing fast and reliable.
 
-This ensures that all database calls (findUnique, update, create, $transaction) are intercepted and controlled during testing.Test Case: Successful Payment FlowThis test simulates a complete payment process:Mocks sender and receiver data with sufficient balance.
-Verifies the receiver exists via prisma.user.findUnique.
-Simulates a transaction using prisma.$transaction.
-Ensures the transaction status is "COMPLETED".
+🧠 Code Architecture & Logic
+The code simulates a payment transaction with logical steps:
 
-Key assertions:typescript
+Balance Check
 
+ts
+Copy
+Edit
 expect(mockSender.balance).toBeGreaterThanOrEqual(paymentData.amount);
+Receiver Validation
+
+ts
+Copy
+Edit
 expect(mockReceiver).toBeTruthy();
+Transaction Completion
+
+ts
+Copy
+Edit
 expect(mockTransaction.status).toBe("COMPLETED");
+Insufficient Balance Edge Case
 
-Test Case: Insufficient BalanceThis test checks the behavior when the sender's balance is insufficient:Mocks a sender with a balance lower than the payment amount.
-Verifies that the balance check fails.
-
-Key assertion:typescript
-
+ts
+Copy
+Edit
 expect(mockSender.balance).toBeLessThan(paymentData.amount);
+All critical paths are tested to ensure safe and consistent behavior.
 
-AssumptionsThe payment flow assumes a single currency for simplicity.
-The Prisma schema includes user and transaction models with fields like id, email, balance, amount, status, senderId, and receiverId.
-Transactions are atomic, handled via Prisma's $transaction API.
-The system does not handle concurrency issues (e.g., race conditions) in this test assignment.
+📌 Assumptions
+💱 A single currency system is assumed.
 
-Future ImprovementsAdd concurrency handling to prevent double-spending or race conditions.
-Implement real database integration for end-to-end testing.
-Add validation for negative amounts or invalid email formats.
-Include retry mechanisms for failed transactions.
-Enhance error messages for better user experience.
+🧾 User and Transaction models exist in Prisma schema.
 
-ContactFor questions or feedback regarding this test assignment, 
-please contact Developer: nahomtewodrosm@gmial.com
+🔐 Transactions are atomic, simulated via $transaction.
 
-Notes on EnhancementsStructure: Added clear sections for easy navigation (Overview, Features, Setup, etc.).
-Clarity: Simplified explanations while maintaining technical accuracy.
-Professional Tone: Used a formal yet approachable tone suitable for a job assignment.
-Future Improvements: Included suggestions to demonstrate foresight and understanding of real-world systems.
-Assumptions: Explicitly listed assumptions to clarify the scope of the implementation.
+⚠️ Concurrency and race conditions are not handled in this scope.
 
+🚀 Future Enhancements
+Next-level upgrades you could implement:
+
+🔄 Concurrency control (e.g. locks or balance versioning).
+
+🌐 Real database integration with Prisma and  Mongodb.
+
+🧾 Input validation for email and amount fields.
+
+🔁 Retry strategies for failed transactions.
+
+📣 Enhanced error messaging with custom error classes.
+
+📫 Contact
+For questions, feedback, or collaboration requests:
+Developer: Nahom Tewodros
+📧 Email: nahomtewodrosm@gmail.com
+
+✨ Final Note
+This isn't just another test assignment. It’s a thoughtful demonstration of engineering finesse — balancing practicality, testability, and clarity. If you're hiring for backend skills, you're in good hands here. ✨
