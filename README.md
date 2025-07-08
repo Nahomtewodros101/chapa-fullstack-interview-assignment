@@ -1,6 +1,6 @@
 💸 Chapa Payment Solutions – Payment Processing Simulation
 This repository contains a professional-grade test assignment showcasing a modular and reliable approach to digital payment processing. Built to emulate real-world transaction logic, it demonstrates a secure, verifiable, and test-driven payment flow using modern TypeScript tooling.
-
+🔗 Live Version  https://chapa-fullstack-interview-assignmen.vercel.app/login
 From balance verification to transaction creation, this project simulates the key operations of a fintech backend — while keeping things robust, testable, and beautifully simple.
 
 🧭 Table of Contents
