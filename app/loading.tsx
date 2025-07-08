@@ -4,19 +4,19 @@ import { Loader2, CreditCard, DollarSign, TrendingUp } from "lucide-react";
 
 export default function Loading() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-transparent flex items-center justify-center p-4">
       <div className="text-center space-y-8 max-w-md mx-auto">
         {/* Logo and Brand */}
         <div className="space-y-4">
           <div className="relative">
-            <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-lg">
+            <div className="w-20 h-20 bg-gradient-to-r from-blue-600 to-black rounded-2xl flex items-center justify-center mx-auto shadow-lg">
               <span className="text-white font-bold text-2xl">PSP</span>
             </div>
             <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
               <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
             </div>
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-black bg-clip-text text-transparent">
             Payment Service Provider
           </h1>
           <p className="text-muted-foreground">Secure • Fast • Reliable</p>

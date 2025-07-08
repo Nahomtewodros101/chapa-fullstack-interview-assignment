@@ -16,6 +16,7 @@ interface User {
 interface AuthContextType {
   user: User | null
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>
+  register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => void
   updateProfile: (data: { name?: string; profilePicture?: string }) => Promise<{ success: boolean; error?: string }>
   loading: boolean
@@ -33,7 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticated = !!user
 
   // Public routes that don't require authentication
-  const publicRoutes = ["/login", "/not-found", "/error"]
+  const publicRoutes = ["/login", "/register", "/not-found", "/error"]
   const isPublicRoute = publicRoutes.includes(pathname)
 
   useEffect(() => {
@@ -42,10 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Only redirect if not loading and not on a public route
-    if (!loading && !isAuthenticated && !isPublicRoute) {
+    if (!loading && !isAuthenticated && !isPublicRoute && pathname !== "/register") {
       router.push("/login")
     }
-  }, [loading, isAuthenticated, isPublicRoute, router])
+  }, [loading, isAuthenticated, isPublicRoute, router, pathname])
 
   const checkAuth = async () => {
     try {
@@ -77,6 +78,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log("Auth context: Starting login for", email)
+
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -85,16 +88,61 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password }),
       })
 
+      console.log("Auth context: Login response status", response.status)
+
       const data = await response.json()
+      console.log("Auth context: Login response data", {
+        success: response.ok,
+        hasToken: !!data.token,
+        hasUser: !!data.user,
+        error: data.error,
+      })
 
       if (response.ok) {
         localStorage.setItem("token", data.token)
         setUser(data.user)
+        console.log("Auth context: Login successful")
         return { success: true }
       } else {
+        console.log("Auth context: Login failed", data.error)
         return { success: false, error: data.error || "Login failed" }
       }
     } catch (error) {
+      console.error("Auth context: Network error during login", error)
+      return { success: false, error: "Network error" }
+    }
+  }
+
+  const register = async (name: string, email: string, password: string) => {
+    try {
+      console.log("Auth context: Starting registration for", email)
+
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name, email, password }),
+      })
+
+      console.log("Auth context: Registration response status", response.status)
+
+      const data = await response.json()
+      console.log("Auth context: Registration response data", {
+        success: response.ok,
+        hasUser: !!data.user,
+        error: data.error,
+      })
+
+      if (response.ok) {
+        console.log("Auth context: Registration successful")
+        return { success: true }
+      } else {
+        console.log("Auth context: Registration failed", data.error)
+        return { success: false, error: data.error || "Registration failed" }
+      }
+    } catch (error) {
+      console.error("Auth context: Network error during registration", error)
       return { success: false, error: "Network error" }
     }
   }
@@ -131,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateProfile, loading, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, register, logout, updateProfile, loading, isAuthenticated }}>
       {children}
     </AuthContext.Provider>
   )

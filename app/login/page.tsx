@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import AuthNavigation from "@/components/AuthNavigation"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -49,7 +50,7 @@ export default function LoginPage() {
   // Show loading while checking authentication
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+      <div className="min-h-screen flex items-center justify-center bg-transparent dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p>Loading...</p>
@@ -64,7 +65,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-transparent dark:from-gray-900 dark:to-gray-800 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Payment Service Provider</CardTitle>
@@ -114,7 +115,7 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="font-semibold text-sm mb-2">Demo Accounts:</p>
+            <p className="font-semibold text-sm mb-2">Admin & Super Admin Accounts:</p>
             <div className="space-y-1 text-xs">
               <p>
                 <strong>Super Admin:</strong> superadmin@psp.com
@@ -130,6 +131,8 @@ export default function LoginPage() {
               </p>
             </div>
           </div>
+
+          <AuthNavigation />
         </CardContent>
       </Card>
     </div>

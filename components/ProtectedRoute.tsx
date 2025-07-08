@@ -16,11 +16,16 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
   const router = useRouter()
   const pathname = usePathname()
 
+  // Public routes that don't require authentication
+  const publicRoutes = ["/login", "/register", "/not-found", "/error", "/"]
+  const isPublicRoute = publicRoutes.includes(pathname)
+
   useEffect(() => {
-    if (!loading && !isAuthenticated && pathname !== "/login") {
+    if (!loading && !isAuthenticated && !isPublicRoute) {
+      // Only redirect to login if not on a public route
       router.push("/login")
     }
-  }, [loading, isAuthenticated, router, pathname])
+  }, [loading, isAuthenticated, router, pathname, isPublicRoute])
 
   useEffect(() => {
     if (user && requiredRole && !requiredRole.includes(user.role)) {
