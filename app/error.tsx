@@ -31,7 +31,7 @@ export default function Error({
             <AlertTriangle className="h-8 w-8 text-red-600 dark:text-red-400" />
           </div>
           <CardTitle className="text-2xl font-bold text-red-600 dark:text-red-400">
-            Something went wrong!
+            Something went wrong
           </CardTitle>
           <CardDescription className="text-base">
             We encountered an unexpected error. Don't worry, our team has been
