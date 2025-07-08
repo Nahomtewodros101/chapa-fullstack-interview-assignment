@@ -1,51 +1,57 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuth } from "@/lib/auth-context"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Loader2 } from "lucide-react"
-import AuthNavigation from "@/components/AuthNavigation"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+import AuthNavigation from "@/components/AuthNavigation";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
-  const { login, isAuthenticated, loading: authLoading } = useAuth()
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { login, isAuthenticated, loading: authLoading } = useAuth();
+  const router = useRouter();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
-      router.push("/dashboard")
+      router.push("/dashboard");
     }
-  }, [isAuthenticated, authLoading, router])
+  }, [isAuthenticated, authLoading, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError("")
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
-      const result = await login(email, password)
+      const result = await login(email, password);
 
       if (result.success) {
-        router.push("/dashboard")
+        router.push("/dashboard");
       } else {
-        setError(result.error || "Login failed")
+        setError(result.error || "Login failed");
       }
     } catch (error) {
-      setError("An error occurred")
+      setError("An error occurred");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // Show loading while checking authentication
   if (authLoading) {
@@ -56,20 +62,24 @@ export default function LoginPage() {
           <p>Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   // Don't render login form if already authenticated
   if (isAuthenticated) {
-    return null
+    return null;
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-transparent dark:from-gray-900 dark:to-gray-800 p-4">
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">Payment Service Provider</CardTitle>
-          <CardDescription className="text-center">Sign in to your account to continue</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center">
+            Payment Service Provider
+          </CardTitle>
+          <CardDescription className="text-center">
+            Sign in to your account to continue
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,19 +125,21 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 p-4 bg-muted rounded-lg">
-            <p className="font-semibold text-sm mb-2">Admin & Super Admin Accounts:</p>
+            <p className="font-semibold text-sm mb-2">
+              Admin & Super Admin Accounts:
+            </p>
             <div className="space-y-1 text-xs">
               <p>
-                <strong>Super Admin:</strong> superadmin@psp.com
+                <strong>Super Admin:</strong> superadmin@gmail.com
               </p>
               <p>
-                <strong>Admin:</strong> admin@psp.com
+                <strong>Admin:</strong> admin1o1@gmail.com
               </p>
               <p>
-                <strong>User:</strong> user1@example.com
+                <strong>User:</strong> abenezer.wasihun47@gmail.com
               </p>
               <p className="mt-2">
-                <strong>Password for all:</strong> password123
+                <strong>Password for all:</strong>pandamusic101
               </p>
             </div>
           </div>
@@ -136,5 +148,5 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

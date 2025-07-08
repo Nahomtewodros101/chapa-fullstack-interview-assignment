@@ -1,8 +1,8 @@
 "use client";
 
 import type React from "react";
-
 import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
 import {
   Card,
   CardContent,
@@ -15,7 +15,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Wallet, Send, History } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  SimpleLoading,
+  SimpleCardLoading,
+} from "@/components/ui/simple-loading";
+import { MacBookFrame } from "@/components/ui/macbook-frame";
+import {
+  Wallet,
+  Send,
+  History,
+  DollarSign,
+  ArrowUpRight,
+  ArrowDownLeft,
+  RefreshCw,
+} from "lucide-react";
 
 interface Transaction {
   id: string;
@@ -28,12 +42,8 @@ interface Transaction {
   receiver?: { name: string; email: string };
 }
 
-interface User {
-  balance: number;
-}
-
 export default function UserDashboard() {
-  const [user, setUser] = useState<User | null>(null);
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [paymentForm, setPaymentForm] = useState({
@@ -42,33 +52,69 @@ export default function UserDashboard() {
     description: "",
   });
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
-    fetchUserData();
     fetchTransactions();
   }, []);
 
-  const fetchUserData = async () => {
-    try {
-      const response = await fetch("/api/user/profile");
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
+  const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    if (!token || token === "null" || token === "undefined") {
+      console.error("No valid token found");
+      return null;
     }
+    return {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    };
   };
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch("/api/transactions");
+      const headers = getAuthHeaders();
+      if (!headers) {
+        setAlert({
+          type: "error",
+          message: "Authentication required. Please log in again.",
+        });
+        setLoading(false);
+        return;
+      }
+
+      console.log("Fetching transactions with headers:", {
+        hasAuth: !!headers.Authorization,
+      });
+
+      const response = await fetch("/api/transactions", { headers });
+
+      console.log(
+        "Transaction fetch response:",
+        response.status,
+        response.statusText
+      );
+
       if (response.ok) {
         const data = await response.json();
+        console.log("Transactions fetched:", data.length);
         setTransactions(data);
+      } else {
+        const errorData = await response.json();
+        console.error("Transaction fetch failed:", errorData);
+        setAlert({
+          type: "error",
+          message: errorData.error || "Failed to fetch transactions",
+        });
       }
     } catch (error) {
       console.error("Error fetching transactions:", error);
+      setAlert({
+        type: "error",
+        message: "Network error while fetching transactions",
+      });
     } finally {
       setLoading(false);
     }
@@ -77,11 +123,22 @@ export default function UserDashboard() {
   const handlePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     setPaymentLoading(true);
+    setAlert(null);
 
     try {
+      const headers = getAuthHeaders();
+      if (!headers) {
+        setAlert({
+          type: "error",
+          message: "Authentication required. Please log in again.",
+        });
+        setPaymentLoading(false);
+        return;
+      }
+
       const response = await fetch("/api/transactions", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           receiverEmail: paymentForm.receiverEmail,
           amount: Number.parseFloat(paymentForm.amount),
@@ -89,165 +146,286 @@ export default function UserDashboard() {
         }),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setPaymentForm({ receiverEmail: "", amount: "", description: "" });
-        fetchUserData();
         fetchTransactions();
-        alert("Payment sent successfully!");
+        setAlert({
+          type: "success",
+          message: "Payment sent successfully! 📧 Email notifications sent.",
+        });
+        // Refresh user data to update balance
+        window.location.reload();
       } else {
-        const error = await response.json();
-        alert(error.error || "Payment failed");
+        // Handle specific error cases
+        if (response.status === 408) {
+          setAlert({
+            type: "error",
+            message: "Transaction timeout. Please try again.",
+          });
+        } else if (response.status === 409) {
+          setAlert({
+            type: "error",
+            message: "Transaction conflict. Please try again.",
+          });
+        } else {
+          setAlert({ type: "error", message: data.error || "Payment failed" });
+        }
       }
     } catch (error) {
-      alert("Payment failed");
+      console.error("Payment error:", error);
+      setAlert({
+        type: "error",
+        message: "Network error during payment. Please try again.",
+      });
     } finally {
       setPaymentLoading(false);
     }
   };
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <MacBookFrame title="User Dashboard - Loading">
+        <div className="space-y-6">
+          <SimpleCardLoading />
+          <SimpleCardLoading />
+          <SimpleCardLoading />
+        </div>
+      </MacBookFrame>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Wallet Balance */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
-            Wallet Balance
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-3xl font-bold text-green-600">
-            ${user?.balance?.toFixed(2) || "0.00"}
-          </div>
-        </CardContent>
-      </Card>
+    <MacBookFrame title={`User Dashboard - ${user?.name || "User"}`}>
+      <div className="space-y-6">
+        {alert && (
+          <Alert variant={alert.type === "error" ? "destructive" : "default"}>
+            <AlertDescription>{alert.message}</AlertDescription>
+          </Alert>
+        )}
 
-      {/* Send Payment */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Send className="h-5 w-5" />
-            Send Payment
-          </CardTitle>
-          <CardDescription>Transfer money to another user</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handlePayment} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="receiverEmail">Recipient Email</Label>
-              <Input
-                id="receiverEmail"
-                type="email"
-                value={paymentForm.receiverEmail}
-                onChange={(e) =>
-                  setPaymentForm({
-                    ...paymentForm,
-                    receiverEmail: e.target.value,
-                  })
-                }
-                required
-              />
+        {/* Wallet Balance */}
+        <Card className="border-2 hover:shadow-md transition-shadow bg-gradient-to-r from-blue-50 to-indigo-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-blue-600" />
+              Wallet Balance
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-2">
+              <DollarSign className="h-8 w-8 text-green-600" />
+              <div className="text-3xl font-bold text-green-600">
+                {formatCurrency(user?.balance || 0)}
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="amount">Amount ($)</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={paymentForm.amount}
-                onChange={(e) =>
-                  setPaymentForm({ ...paymentForm, amount: e.target.value })
-                }
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description (Optional)</Label>
-              <Textarea
-                id="description"
-                value={paymentForm.description}
-                onChange={(e) =>
-                  setPaymentForm({
-                    ...paymentForm,
-                    description: e.target.value,
-                  })
-                }
-              />
-            </div>
-            <Button type="submit" disabled={paymentLoading}>
-              {paymentLoading ? "Sending..." : "Send Payment"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+            <p className="text-sm text-gray-600 mt-2">
+              Available for transactions
+            </p>
+          </CardContent>
+        </Card>
 
-      {/* Transaction History */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <History className="h-5 w-5" />
-            Transaction History
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {transactions.length === 0 ? (
-              <p className="text-gray-500">No transactions yet</p>
-            ) : (
-              transactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="flex items-center justify-between p-4 border rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium">
-                      {transaction.type === "PAYMENT"
-                        ? `Payment ${
-                            transaction.sender
-                              ? `to ${transaction.receiver?.name ?? transaction.receiver?.email ?? "Unknown"}`
-                              : `from ${(transaction.sender && typeof transaction.sender === "object" && ("name" in transaction.sender || "email" in transaction.sender))
-                                  ? ((transaction.sender as { name?: string; email?: string }).name ?? (transaction.sender as { name?: string; email?: string }).email ?? "Unknown")
-                                  : "Unknown"}`
-                          }`
-                        : transaction.type}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {transaction.description}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {new Date(transaction.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p
-                      className={`font-bold ${
-                        transaction.sender ? "text-red-600" : "text-green-600"
-                      }`}
-                    >
-                      {transaction.sender ? "-" : "+"}$
-                      {transaction.amount.toFixed(2)}
-                    </p>
-                    <Badge
-                      variant={
-                        transaction.status === "COMPLETED"
-                          ? "default"
-                          : "secondary"
-                      }
-                    >
-                      {transaction.status}
-                    </Badge>
-                  </div>
+        {/* Send Payment */}
+        <Card className="border-2 hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Send className="h-5 w-5 text-blue-600" />
+              Send Payment
+            </CardTitle>
+            <CardDescription>Transfer money to another user</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handlePayment} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="receiverEmail">Recipient Email</Label>
+                <Input
+                  id="receiverEmail"
+                  type="email"
+                  placeholder="Enter recipient's email"
+                  value={paymentForm.receiverEmail}
+                  onChange={(e) =>
+                    setPaymentForm({
+                      ...paymentForm,
+                      receiverEmail: e.target.value,
+                    })
+                  }
+                  required
+                  className="border-2 focus:border-blue-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="amount">Amount ($)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  max={user?.balance || 0}
+                  placeholder="0.00"
+                  value={paymentForm.amount}
+                  onChange={(e) =>
+                    setPaymentForm({ ...paymentForm, amount: e.target.value })
+                  }
+                  required
+                  className="border-2 focus:border-blue-500"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description (Optional)</Label>
+                <Textarea
+                  id="description"
+                  placeholder="What's this payment for?"
+                  value={paymentForm.description}
+                  onChange={(e) =>
+                    setPaymentForm({
+                      ...paymentForm,
+                      description: e.target.value,
+                    })
+                  }
+                  className="border-2 focus:border-blue-500"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={paymentLoading}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {paymentLoading ? (
+                  <>
+                    <SimpleLoading size="sm" className="mr-2" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Send Payment
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Transaction History */}
+        <Card className="border-2 hover:shadow-md transition-shadow">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-blue-600" />
+              Transaction History
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={fetchTransactions}
+                className="ml-auto"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </CardTitle>
+            <CardDescription>
+              Your recent transactions and payments
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              {transactions.length === 0 ? (
+                <div className="text-center py-8">
+                  <History className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">No transactions yet</p>
+                  <p className="text-sm text-gray-500">
+                    Your payment history will appear here
+                  </p>
                 </div>
-              ))
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+              ) : (
+                transactions.map((transaction) => {
+                  const isOutgoing = transaction.sender?.email === user?.email;
+                  const otherParty = isOutgoing
+                    ? transaction.receiver
+                    : transaction.sender;
+
+                  return (
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between p-4 border-2 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div
+                          className={`p-2 rounded-full ${
+                            isOutgoing
+                              ? "bg-red-100 text-red-600"
+                              : "bg-green-100 text-green-600"
+                          }`}
+                        >
+                          {isOutgoing ? (
+                            <ArrowUpRight className="h-4 w-4" />
+                          ) : (
+                            <ArrowDownLeft className="h-4 w-4" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900">
+                            {isOutgoing ? "Sent to" : "Received from"}{" "}
+                            {otherParty?.name}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {transaction.description || "No description"}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatDate(transaction.createdAt)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`font-bold ${
+                            isOutgoing ? "text-red-600" : "text-green-600"
+                          }`}
+                        >
+                          {isOutgoing ? "-" : "+"}
+                          {formatCurrency(transaction.amount)}
+                        </p>
+                        <Badge
+                          variant={
+                            transaction.status === "COMPLETED"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className={`${
+                            transaction.status === "COMPLETED"
+                              ? "bg-green-100 text-green-800"
+                              : transaction.status === "PENDING"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
+                          }`}
+                        >
+                          {transaction.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </MacBookFrame>
   );
 }

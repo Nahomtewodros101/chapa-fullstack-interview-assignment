@@ -34,6 +34,43 @@ export async function GET(request: NextRequest) {
         balance: true,
         profilePicture: true,
         createdAt: true,
+        updatedAt: true,
+        sentTransactions: {
+          select: {
+            id: true,
+            amount: true,
+            description: true,
+            status: true,
+            type: true,
+            createdAt: true,
+            receiver: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 10, // Latest 10 transactions
+        },
+        receivedTransactions: {
+          select: {
+            id: true,
+            amount: true,
+            description: true,
+            status: true,
+            type: true,
+            createdAt: true,
+            sender: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 10, // Latest 10 transactions
+        },
         _count: {
           select: {
             sentTransactions: true,
@@ -46,6 +83,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(users);
   } catch (error) {
+    console.error("Error fetching users:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

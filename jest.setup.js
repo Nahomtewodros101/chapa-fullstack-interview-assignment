@@ -1,11 +1,10 @@
-import "@testing-library/jest-dom"
-import { TextEncoder, TextDecoder } from "util"
-import jest from "jest"
-import { beforeAll, afterAll } from "@jest/globals"
+// jest.setup.js
+import "@testing-library/jest-dom";
+import { TextEncoder, TextDecoder } from "util";
 
 // Polyfill for Node.js environment
-global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Mock localStorage
 const localStorageMock = {
@@ -13,13 +12,14 @@ const localStorageMock = {
   setItem: jest.fn(),
   removeItem: jest.fn(),
   clear: jest.fn(),
-}
-Object.defineProperty(window, "localStorage", {
+};
+Object.defineProperty(global, "localStorage", {
   value: localStorageMock,
-})
+  writable: true,
+});
 
 // Mock fetch
-global.fetch = jest.fn()
+global.fetch = jest.fn();
 
 // Mock Next.js router
 jest.mock("next/navigation", () => ({
@@ -33,9 +33,9 @@ jest.mock("next/navigation", () => ({
   }),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => "",
-}))
+}));
 
-// Mock JWT auth context
+// Mock Auth context
 jest.mock("@/lib/auth-context", () => ({
   useAuth: () => ({
     user: null,
@@ -46,62 +46,22 @@ jest.mock("@/lib/auth-context", () => ({
     isAuthenticated: false,
   }),
   AuthProvider: ({ children }) => children,
-}))
+}));
 
-// Mock Prisma
-jest.mock("@/lib/prisma", () => ({
-  prisma: {
-    user: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
-    },
-    transaction: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-      aggregate: jest.fn(),
-      count: jest.fn(),
-    },
-    $transaction: jest.fn(),
-    $queryRaw: jest.fn(),
-  },
-}))
-
-// Mock JWT functions
-jest.mock("@/lib/jwt", () => ({
-  signToken: jest.fn(),
-  verifyToken: jest.fn(),
-  hashPassword: jest.fn(),
-  comparePassword: jest.fn(),
-  generateRefreshToken: jest.fn(),
-}))
-
-// Mock bcryptjs
-jest.mock("bcryptjs", () => ({
-  hash: jest.fn(),
-  compare: jest.fn(),
-}))
-
-// Mock jsonwebtoken
-jest.mock("jsonwebtoken", () => ({
-  sign: jest.fn(),
-  verify: jest.fn(),
-}))
-
-// Suppress console errors during tests
-const originalError = console.error
+// Suppress console errors during tests (e.g., ReactDOM.render warnings)
+const originalError = console.error;
 beforeAll(() => {
   console.error = (...args) => {
-    if (typeof args[0] === "string" && args[0].includes("Warning: ReactDOM.render is no longer supported")) {
-      return
+    if (
+      typeof args[0] === "string" &&
+      args[0].includes("Warning: ReactDOM.render is no longer supported")
+    ) {
+      return;
     }
-    originalError.call(console, ...args)
-  }
-})
+    originalError.call(console, ...args);
+  };
+});
 
 afterAll(() => {
-  console.error = originalError
-})
+  console.error = originalError;
+});

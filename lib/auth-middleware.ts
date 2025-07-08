@@ -11,6 +11,11 @@ export async function authenticateRequest(request: NextRequest) {
     }
 
     const token = authHeader.substring(7);
+
+    if (!token || token === "null" || token === "undefined") {
+      return { error: "Invalid token", status: 401 };
+    }
+
     const payload = verifyToken(token);
 
     if (!payload) {
