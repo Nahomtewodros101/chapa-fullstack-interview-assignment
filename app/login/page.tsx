@@ -135,9 +135,7 @@ export default function LoginPage() {
               <p>
                 <strong>Admin:</strong> admin1o1@gmail.com
               </p>
-              <p>
-                <strong>User:</strong> abenezer.wasihun47@gmail.com
-              </p>
+
               <p className="mt-2">
                 <strong>Password for all:</strong>pandamusic101
               </p>
