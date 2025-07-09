@@ -170,5 +170,3 @@ For questions, feedback, or collaboration requests:
 Developer: Nahom Tewodros
 📧 Email: nahomtewodrosm@gmail.com
 
-✨ Final Note
-This isn't just another test assignment. It’s a thoughtful demonstration of engineering finesse — balancing practicality, testability, and clarity. If you're hiring for backend skills, you're in good hands here. ✨
