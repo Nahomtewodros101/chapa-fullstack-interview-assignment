@@ -113,7 +113,7 @@ class EmailService {
       to: userEmail,
       subject: "Welcome to Payment Service Provider! 🎉",
       html,
-      text: `Welcome ${userName}! Your Payment Service Provider account has been created successfully. You now have $1,000 starting balance and can send/receive payments instantly.`,
+      text: ` ${userName}! Your Payment Service Provider account has been created successfully. You now have $1,000 starting balance and can send/receive payments instantly.`,
     });
   }
 

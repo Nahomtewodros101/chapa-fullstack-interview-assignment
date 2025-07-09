@@ -232,7 +232,6 @@ export default function UserDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center space-x-2">
-              <DollarSign className="h-8 w-8 text-green-600" />
               <div className="text-3xl font-bold text-green-600">
                 {formatCurrency(user?.balance || 0)}
               </div>
